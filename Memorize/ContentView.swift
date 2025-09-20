@@ -8,44 +8,27 @@
 import SwiftUI
 
 struct ContentView: View {
-    let emojis: Array<String> = ["👽","👻","💀","🎃", "🤖", "😈", "🤡", "☃️"]
+    let emojis: Array<String> = ["👽","👻","💀","🎃", "🤖", "😈", "🤡", "☃️", "🐹", "🐇", "🐻", "🐼"]
     @State var cardCount: Int = 4
     
     var body: some View {
         
         VStack{
-            cards
+            ScrollView{
+                cards
+            }
+
             cardCountModifiers
         }.padding()
     }
     
     var cards: some View {
-        HStack{
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 90))]){
             ForEach(0..<cardCount, id: \.self){ index in
                 CardView(content:emojis[index])
+                    .aspectRatio(2/3, contentMode: .fit)
             }
         }.foregroundColor(.blue)
-    }
-    
-    var removeCard: some View {
-        Button(action:{
-            if cardCount > 1{
-                cardCount-=1
-            }
-        }, label:{
-            Image(systemName: "rectangle.stack.badge.minus.fill")
-        })
-    }
-    
-    var addCard: some View {
-        Button(action:{
-            if cardCount < emojis.count{
-                cardCount+=1
-            }
-            
-        }, label:{
-            Image(systemName: "rectangle.stack.badge.plus.fill")
-        })
     }
     
     var cardCountModifiers: some View {
@@ -57,6 +40,23 @@ struct ContentView: View {
             .font(.largeTitle)
     }
     
+    func cardCountManager(by increment: Int, symbol: String) -> some View {
+        Button(action:{
+                cardCount += increment
+            }
+        , label:{
+            Image(systemName: symbol)
+        })
+        .disabled(cardCount + increment < 1 || cardCount + increment > emojis.count)
+    }
+    
+    var removeCard: some View {
+        cardCountManager(by:-1, symbol:"rectangle.stack.badge.minus.fill")
+    }
+    
+    var addCard: some View {
+        cardCountManager(by:+1, symbol:"rectangle.stack.badge.plus.fill")
+    }
     
 }
  
@@ -69,14 +69,14 @@ struct CardView: View{
             //constant: let - variable: var
             let base: RoundedRectangle = RoundedRectangle(cornerRadius: 12)
             
-            if isFaceUp{
+            Group{
                     base.fill(.white)
                     base.strokeBorder(lineWidth:2)
                     Text(content).font(.largeTitle)
                 }
-            else{
-                    base
-                }
+                .opacity(isFaceUp ? 1 : 0)
+                base.fill().opacity(isFaceUp ?  0 : 1)
+            
         }.onTapGesture {
             isFaceUp.toggle() //  isFaceUp = !isFaceUp
         }
